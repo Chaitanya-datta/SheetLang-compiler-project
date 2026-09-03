@@ -1,0 +1,14 @@
+SHEET NativeMixed
+
+LET Price = 50
+LET Quantity = 3
+LET Total = Price * Quantity
+LET Discount = Total / 10
+LET Final = Total - Discount
+
+PRINT "Order Summary"
+PRINT Total
+PRINT Discount
+PRINT Final
+
+END

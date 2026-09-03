@@ -1,0 +1,31 @@
+SHEET Phase8Comparison
+
+LET A = 10
+LET B = 10
+LET C = 5
+
+IF A == B
+    PRINT 1
+ENDIF
+
+IF A != C
+    PRINT 2
+ENDIF
+
+IF C < A
+    PRINT 3
+ENDIF
+
+IF C <= A
+    PRINT 4
+ENDIF
+
+IF A > C
+    PRINT 5
+ENDIF
+
+IF A >= B
+    PRINT 6
+ENDIF
+
+END

@@ -1,0 +1,13 @@
+SHEET NativeVariables
+
+LET A = 100
+LET B = 40
+LET C = A - B
+LET D = C * 2
+LET E = D / B
+
+PRINT C
+PRINT D
+PRINT E
+
+END

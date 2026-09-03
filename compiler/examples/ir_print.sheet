@@ -1,0 +1,11 @@
+SHEET PrintDemo
+
+LET A = 42
+LET B = A + 8
+
+PRINT 100
+PRINT A
+PRINT B
+PRINT A + B
+
+END

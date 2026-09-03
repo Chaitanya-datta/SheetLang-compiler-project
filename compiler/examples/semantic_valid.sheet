@@ -1,0 +1,11 @@
+SHEET Valid
+
+LET A = 10
+LET B = 20
+LET C = A + B
+LET Average = C / 2
+
+PRINT C
+PRINT Average
+
+END

@@ -1,0 +1,24 @@
+SHEET Phase8Combined
+
+FUNCTION classify(A)
+    IF A > 10
+        RETURN 1
+    ELSE
+        RETURN 0
+    ENDIF
+ENDFUNCTION
+
+FUNCTION square(A)
+    RETURN A * A
+ENDFUNCTION
+
+LET X = square(5) + 10
+PRINT X
+
+LET Y = classify(20)
+PRINT Y
+
+LET Z = classify(3)
+PRINT Z
+
+END

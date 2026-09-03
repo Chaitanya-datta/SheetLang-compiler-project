@@ -1,0 +1,10 @@
+SHEET ConditionError
+
+LET A = 10
+LET B = "hello"
+
+IF A > B
+    PRINT A
+ENDIF
+
+END

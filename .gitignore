@@ -1,0 +1,9 @@
+node_modules/
+compiler/build/
+backend/dist/
+frontend/dist/
+*.o
+*.dylib
+*.log
+.env
+.DS_Store

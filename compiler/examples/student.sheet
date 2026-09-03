@@ -1,0 +1,14 @@
+SHEET Student
+
+LET Maths = 90
+LET Physics = 85
+LET Chemistry = 80
+
+LET Total = Maths + Physics + Chemistry
+LET Average = Total / 3
+
+PRINT "Student Marks"
+PRINT Total
+PRINT Average
+
+END

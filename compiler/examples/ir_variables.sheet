@@ -1,0 +1,13 @@
+SHEET Variables
+
+LET A = 5
+LET B = 10
+LET C = A + B
+LET D = C - A
+LET E = D * B
+LET F = E / A
+
+PRINT A
+PRINT F
+
+END

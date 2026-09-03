@@ -1,0 +1,6 @@
+SHEET Phase8ReturnOutsideFunction
+
+LET A = 10
+RETURN A
+
+END

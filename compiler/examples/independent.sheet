@@ -1,0 +1,11 @@
+SHEET Independent
+
+LET A = 10
+LET B = 20
+LET C = A + 5
+LET D = B + 5
+
+PRINT C
+PRINT D
+
+END

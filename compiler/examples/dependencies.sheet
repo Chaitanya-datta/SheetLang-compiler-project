@@ -1,0 +1,10 @@
+SHEET Dependencies
+
+LET A = 10
+LET B = A + 5
+LET C = B * 2
+LET D = A + C
+
+PRINT D
+
+END

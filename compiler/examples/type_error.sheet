@@ -1,0 +1,7 @@
+SHEET TypeError
+
+LET A = 10
+LET B = "hello"
+LET C = A + B
+
+END

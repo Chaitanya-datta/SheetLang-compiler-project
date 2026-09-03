@@ -1,0 +1,9 @@
+SHEET Phase8WrongArgs
+
+FUNCTION add(A, B)
+    RETURN A + B
+ENDFUNCTION
+
+LET X = add(10)
+
+END

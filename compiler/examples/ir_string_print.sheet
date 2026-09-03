@@ -1,0 +1,8 @@
+SHEET StringPrint
+
+LET Name = "SheetLang"
+
+PRINT "Hello, world"
+PRINT Name
+
+END

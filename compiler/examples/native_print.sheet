@@ -1,0 +1,11 @@
+SHEET NativePrint
+
+LET A = 7
+LET B = 6
+
+PRINT 99
+PRINT A
+PRINT B
+PRINT A * B
+
+END

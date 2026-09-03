@@ -1,0 +1,9 @@
+SHEET Phase8Function
+
+FUNCTION test()
+    PRINT 42
+ENDFUNCTION
+
+test()
+
+END

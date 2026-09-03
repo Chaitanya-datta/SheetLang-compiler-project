@@ -1,0 +1,13 @@
+SHEET NativeDivision
+
+LET A = 22
+LET B = 7
+LET C = A / B
+LET D = 100
+LET E = 8
+LET F = D / E
+
+PRINT C
+PRINT F
+
+END

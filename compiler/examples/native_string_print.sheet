@@ -1,0 +1,9 @@
+SHEET NativeStringPrint
+
+LET Name = "SheetLang"
+
+PRINT "Hello, world"
+PRINT "SheetLang"
+PRINT Name
+
+END

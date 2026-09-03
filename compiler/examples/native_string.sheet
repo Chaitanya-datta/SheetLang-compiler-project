@@ -1,0 +1,6 @@
+SHEET NativeString
+
+PRINT "Hello, world"
+PRINT "SheetLang"
+
+END

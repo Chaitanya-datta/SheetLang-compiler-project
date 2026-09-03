@@ -1,0 +1,5 @@
+SHEET DivZero
+
+LET A = 10 / 0
+
+END

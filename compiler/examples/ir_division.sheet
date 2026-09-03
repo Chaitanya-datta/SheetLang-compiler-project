@@ -1,0 +1,9 @@
+SHEET Division
+
+LET A = 22
+LET B = 7
+LET C = A / B
+
+PRINT C
+
+END

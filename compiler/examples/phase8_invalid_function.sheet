@@ -1,0 +1,5 @@
+SHEET Phase8InvalidFunction
+
+LET X = unknown(10)
+
+END

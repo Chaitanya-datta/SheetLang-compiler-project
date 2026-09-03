@@ -1,0 +1,9 @@
+SHEET Phase8FunctionArgs
+
+FUNCTION square(A)
+    RETURN A * A
+ENDFUNCTION
+
+PRINT square(5)
+
+END

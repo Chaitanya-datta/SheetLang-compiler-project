@@ -1,0 +1,5 @@
+SHEET NativeSyntaxError
+
+LET A = + 5
+
+END

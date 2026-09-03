@@ -1,0 +1,5 @@
+SHEET NativeInvalidCharacter
+
+LET A = 5 @ 3
+
+END

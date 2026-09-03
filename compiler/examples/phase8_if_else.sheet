@@ -1,0 +1,11 @@
+SHEET Phase8IfElse
+
+LET A = 3
+
+IF A > 5
+    PRINT 1
+ELSE
+    PRINT 0
+ENDIF
+
+END

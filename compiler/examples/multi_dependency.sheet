@@ -1,0 +1,10 @@
+SHEET MultiDependency
+
+LET A = 10
+LET B = 20
+LET C = A + B
+LET D = C + A + B
+
+PRINT D
+
+END

@@ -1,0 +1,11 @@
+SHEET Phase8DuplicateFunction
+
+FUNCTION add(A)
+    RETURN A
+ENDFUNCTION
+
+FUNCTION add(B)
+    RETURN B
+ENDFUNCTION
+
+END

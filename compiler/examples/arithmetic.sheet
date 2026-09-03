@@ -1,0 +1,11 @@
+SHEET Arithmetic
+
+LET A = 10
+LET B = 20
+LET C = A + B * 5
+LET D = (A + B) * 5
+
+PRINT C
+PRINT D
+
+END

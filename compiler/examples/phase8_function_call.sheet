@@ -1,0 +1,9 @@
+SHEET Phase8FunctionCall
+
+FUNCTION add(A, B)
+    RETURN A + B
+ENDFUNCTION
+
+PRINT add(10, 20)
+
+END

@@ -1,0 +1,10 @@
+SHEET Unary
+
+LET A = 10
+LET B = -A
+LET C = -(A + 5)
+
+PRINT B
+PRINT C
+
+END

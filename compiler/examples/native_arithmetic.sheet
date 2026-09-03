@@ -1,0 +1,11 @@
+SHEET NativeArithmetic
+
+LET A = 10
+LET B = 20
+LET C = A + B
+LET D = A * B
+
+PRINT C
+PRINT D
+
+END

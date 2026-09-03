@@ -1,0 +1,10 @@
+SHEET NativeUnary
+
+LET A = 15
+LET B = -A
+LET C = -(A + 5)
+
+PRINT B
+PRINT C
+
+END

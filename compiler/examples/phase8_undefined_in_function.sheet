@@ -1,0 +1,9 @@
+SHEET Phase8UndefinedInFunction
+
+FUNCTION square(A)
+    RETURN A + X
+ENDFUNCTION
+
+PRINT square(5)
+
+END
