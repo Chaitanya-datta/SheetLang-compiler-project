@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import SourceEditor from "./components/SourceEditor";
 import PipelineView from "./components/PipelineView";
 import { TabBar, OutputPanel, type TabName } from "./components/OutputPanels";
+import HistoryView from "./components/HistoryView";
 import { compileSource, fetchExamples, fetchExampleSource, fetchHealth } from "./lib/api";
 import type { CompileResult, ExampleMeta, HealthStatus } from "./lib/types";
 
@@ -54,6 +55,7 @@ export default function App() {
   const [activeExampleId, setActiveExampleId] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [demoRunning, setDemoRunning] = useState(false);
+  const [view, setView] = useState<"playground" | "history">("playground");
 
   useEffect(() => {
     fetchExamples().then(setExamples).catch(() => setExamples([]));
@@ -155,8 +157,17 @@ export default function App() {
         onReset={handleReset}
         onDemo={handleDemo}
         compiling={compiling || demoRunning}
+        view={view}
+        onChangeView={setView}
       />
 
+      {view === "history" ? (
+        <div className="flex-1 overflow-hidden p-3">
+          <div className="h-full overflow-hidden rounded-lg border border-[#26313c] bg-[#111820]">
+            <HistoryView />
+          </div>
+        </div>
+      ) : (
       <div className="flex flex-1 gap-3 overflow-hidden p-3">
         <div className="w-[16%] min-w-[180px] overflow-hidden rounded-lg border border-[#26313c] bg-[#111820]">
           <Sidebar examples={examples} onSelect={handleSelectExample} activeId={activeExampleId} />
@@ -191,6 +202,7 @@ export default function App() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

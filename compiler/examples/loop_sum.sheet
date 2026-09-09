@@ -1,0 +1,13 @@
+SHEET LoopSum
+
+I1 = 1
+S1 = 0
+
+WHILE I1 <= 5
+    S1 = S1 + I1
+    I1 = I1 + 1
+ENDWHILE
+
+PRINT S1
+
+END

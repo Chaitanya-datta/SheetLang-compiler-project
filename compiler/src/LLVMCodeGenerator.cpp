@@ -119,6 +119,8 @@ bool LLVMCodeGenerator::genStatement(const ASTNode* node) {
             return genPrint(static_cast<const PrintNode*>(node));
         case ASTNodeKind::If:
             return genIf(static_cast<const IfNode*>(node));
+        case ASTNodeKind::While:
+            return genWhile(static_cast<const WhileNode*>(node));
         case ASTNodeKind::FunctionDecl:
             return genFunctionDecl(static_cast<const FunctionDeclNode*>(node));
         case ASTNodeKind::Return:
@@ -255,6 +257,37 @@ bool LLVMCodeGenerator::genIf(const IfNode* node) {
     }
 
     builder_->SetInsertPoint(mergeBB);
+    return true;
+}
+
+bool LLVMCodeGenerator::genWhile(const WhileNode* node) {
+    // Real loop control flow: condBB (re-evaluated every iteration) ->
+    // bodyBB -> back edge to condBB -> exitBB. This is a genuine
+    // conditional/back-edge loop in LLVM IR, not an unrolled sequence of
+    // copies of the body.
+    llvm::Function* fn = currentFunction_;
+    llvm::BasicBlock* condBB = llvm::BasicBlock::Create(context_, "whilecond", fn);
+    llvm::BasicBlock* bodyBB = llvm::BasicBlock::Create(context_, "whilebody", fn);
+    llvm::BasicBlock* exitBB = llvm::BasicBlock::Create(context_, "whileexit", fn);
+
+    // Enter the loop by jumping to the condition check.
+    builder_->CreateBr(condBB);
+
+    builder_->SetInsertPoint(condBB);
+    llvm::Value* condVal = genCondition(static_cast<const ComparisonNode*>(node->condition));
+    if (!condVal) return false;
+    builder_->CreateCondBr(condVal, bodyBB, exitBB);
+
+    builder_->SetInsertPoint(bodyBB);
+    if (!genStatementList(node->body)) return false;
+    // The back edge: after the body finishes, re-check the condition --
+    // unless the body already terminated the block itself (e.g. a
+    // RETURN inside the loop body, if the loop is inside a function).
+    if (!builder_->GetInsertBlock()->getTerminator()) {
+        builder_->CreateBr(condBB);
+    }
+
+    builder_->SetInsertPoint(exitBB);
     return true;
 }
 

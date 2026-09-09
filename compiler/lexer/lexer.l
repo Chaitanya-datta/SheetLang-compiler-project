@@ -41,6 +41,8 @@ IDENT   [A-Za-z_][A-Za-z0-9_]*
 "ELSE"        { return ELSE; }
 "ENDIF"       { return ENDIF; }
 "FUNCTION"    { return FUNCTION; }
+"WHILE"       { return WHILE; }
+"ENDWHILE"    { return ENDWHILE; }
 "RETURN"      { return RETURN; }
 "ENDFUNCTION" { return ENDFUNCTION; }
 

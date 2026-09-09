@@ -23,6 +23,7 @@ void yyerror(const char* msg);
 
 %token SHEET END LET PRINT IF ELSE ENDIF
 %token FUNCTION RETURN ENDFUNCTION
+%token WHILE ENDWHILE
 %token <sval> IDENTIFIER CELL STRING
 %token <ival> NUMBER
 %token PLUS MINUS MULTIPLY DIVIDE MOD
@@ -42,6 +43,7 @@ void yyerror(const char* msg);
 %type <node> program stmt assignment print_stmt if_stmt
 %type <node> expr term factor condition
 %type <node> function_decl return_stmt
+%type <node> while_stmt
 %type <stmtList> stmt_list
 %type <exprList> arg_list
 %type <paramList> param_list
@@ -92,6 +94,7 @@ stmt:
     | if_stmt { $$ = $1; }
     | function_decl { $$ = $1; }
     | return_stmt { $$ = $1; }
+    | while_stmt { $$ = $1; }
     | IDENTIFIER LPAREN arg_list RPAREN {
         /* Phase 8: a bare function call used as a statement (its return
          * value, if any, is discarded), e.g. `hello()`. Reuses the exact
@@ -150,6 +153,15 @@ if_stmt:
         $$ = new IfNode($2,
                 new StatementListNode("Then", std::move(*$3), @1.first_line),
                 nullptr,
+                @1.first_line);
+        delete $3;
+    }
+    ;
+
+while_stmt:
+    WHILE condition stmt_list ENDWHILE {
+        $$ = new WhileNode($2,
+                new StatementListNode("Body", std::move(*$3), @1.first_line),
                 @1.first_line);
         delete $3;
     }

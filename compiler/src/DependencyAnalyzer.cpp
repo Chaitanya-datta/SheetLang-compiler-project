@@ -58,6 +58,9 @@ void DependencyAnalyzer::visitStatement(const ASTNode* node) {
         case ASTNodeKind::If:
             visitIf(static_cast<const IfNode*>(node));
             break;
+        case ASTNodeKind::While:
+            visitWhile(static_cast<const WhileNode*>(node));
+            break;
         default:
             break;
     }
@@ -95,6 +98,22 @@ void DependencyAnalyzer::visitIf(const IfNode* node) {
     if (node->elseBlock) {
         visitStatementList(node->elseBlock);
     }
+}
+
+void DependencyAnalyzer::visitWhile(const WhileNode* node) {
+    // Deliberately does NOT walk the loop body -- mirrors the existing,
+    // documented precedent for FunctionDecl bodies. A variable reassigned
+    // across loop iterations (e.g. a CELL counter `I1 = I1 + 1`) is not
+    // representable in Phase 5's static acyclic spreadsheet-dependency
+    // model: that self-reference would always look like a cycle to
+    // hasCycle(), which is CORRECT for a genuine spreadsheet
+    // self-reference (Phase 5's original design target) but wrong for a
+    // loop counter. Rather than weaken cycle detection for everyone,
+    // WHILE is treated as an opaque control-flow construct here, exactly
+    // like FUNCTION bodies already are -- its internal reassignments
+    // simply don't participate in the global dependency graph. This is
+    // an explicit, documented scope decision, not an oversight.
+    (void)node;
 }
 
 void DependencyAnalyzer::collectReferences(const ASTNode* expr, std::set<std::string>& outRefs) {

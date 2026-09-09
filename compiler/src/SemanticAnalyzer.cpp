@@ -43,6 +43,9 @@ void SemanticAnalyzer::visitStatement(const ASTNode* node) {
         case ASTNodeKind::If:
             visitIf(static_cast<const IfNode*>(node));
             break;
+        case ASTNodeKind::While:
+            visitWhile(static_cast<const WhileNode*>(node));
+            break;
         case ASTNodeKind::FunctionDecl:
             visitFunctionDecl(static_cast<const FunctionDeclNode*>(node));
             break;
@@ -100,6 +103,18 @@ void SemanticAnalyzer::visitIf(const IfNode* node) {
     if (node->elseBlock) {
         visitStatementList(node->elseBlock);
     }
+}
+
+void SemanticAnalyzer::visitWhile(const WhileNode* node) {
+    // Mirrors visitIf exactly: the condition is checked (undefined
+    // identifiers / type errors inside it are reported the same way as
+    // an IF condition), then the body is walked with the same
+    // visitStatementList used everywhere else -- WHILE introduces no new
+    // scope, so a variable assigned inside the loop body is an ordinary
+    // global assignment, subject to the same declare-before-use and
+    // duplicate-declaration rules as any other statement.
+    visitExpr(node->condition);
+    visitStatementList(node->body);
 }
 
 void SemanticAnalyzer::visitFunctionDecl(const FunctionDeclNode* node) {

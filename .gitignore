@@ -2,8 +2,12 @@ node_modules/
 compiler/build/
 backend/dist/
 frontend/dist/
+backend/data/
 *.o
 *.dylib
 *.log
+*.db
+*.db-shm
+*.db-wal
 .env
 .DS_Store

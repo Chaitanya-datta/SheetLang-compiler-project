@@ -19,6 +19,11 @@
 //   an IF condition does not itself create a graph edge, since neither
 //   PRINT nor a condition "owns" a symbol to attach dependencies to.
 //   Phase 5 intentionally does not model control-flow-based dependencies.
+// - Phase 10: WHILE loop bodies are, like FUNCTION bodies, NOT walked at
+//   all -- a variable reassigned across loop iterations cannot be
+//   represented in this static acyclic graph without every loop counter
+//   looking like a false-positive cycle. See visitWhile's comment for
+//   the full rationale.
 class DependencyAnalyzer {
 public:
     // Builds the graph and checks it for cycles. Returns true if the
@@ -37,6 +42,7 @@ private:
     void visitStatement(const ASTNode* node);
     void visitAssignment(const AssignmentNode* node);
     void visitIf(const IfNode* node);
+    void visitWhile(const WhileNode* node);
 
     // Recursively collects every Identifier/Cell name referenced anywhere
     // in `expr` into `outRefs` (BinaryExpr, UnaryExpr, Comparison, and

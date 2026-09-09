@@ -1,4 +1,4 @@
-import type { CompileResult, ExampleMeta, HealthStatus } from "./types";
+import type { CompileResult, ExampleMeta, HealthStatus, CompilationRecord, Stats } from "./types";
 
 // This module is the frontend's ONLY interface to the backend/compiler.
 // There is no compiler logic anywhere else in this codebase.
@@ -23,5 +23,15 @@ export async function fetchExampleSource(id: string): Promise<{ source: string; 
 
 export async function fetchHealth(): Promise<HealthStatus> {
   const res = await fetch("/api/health");
+  return res.json();
+}
+
+export async function fetchHistory(): Promise<CompilationRecord[]> {
+  const res = await fetch("/api/history");
+  return res.json();
+}
+
+export async function fetchStats(): Promise<Stats> {
+  const res = await fetch("/api/stats");
   return res.json();
 }

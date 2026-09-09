@@ -56,6 +56,7 @@ private:
     void visitAssignment(const AssignmentNode* node);
     void visitPrint(const PrintNode* node);
     void visitIf(const IfNode* node);
+    void visitWhile(const WhileNode* node);
     void visitFunctionDecl(const FunctionDeclNode* node);
     void visitReturn(const ReturnNode* node);
 

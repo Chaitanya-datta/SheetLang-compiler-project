@@ -98,6 +98,7 @@ private:
     bool genAssignment(const AssignmentNode* node);
     bool genPrint(const PrintNode* node);
     bool genIf(const IfNode* node);
+    bool genWhile(const WhileNode* node);
     bool genFunctionDecl(const FunctionDeclNode* node);
     bool genReturn(const ReturnNode* node);
 

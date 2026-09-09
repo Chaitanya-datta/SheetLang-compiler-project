@@ -4,7 +4,7 @@
 #include <ostream>
 
 enum class ASTNodeKind {
-    Program, Assignment, Print, If, StatementList,
+    Program, Assignment, Print, If, While, StatementList,
     Number, Identifier, Cell, StringLiteral,
     BinaryExpr, UnaryExpr, Comparison, FunctionCall,
     FunctionDecl, Return
@@ -130,6 +130,21 @@ struct IfNode : ASTNode {
         if (elseBlock) out.push_back(elseBlock);
         return out;
     }
+};
+
+// Phase 10 addition: a WHILE loop. Mirrors IfNode's shape exactly
+// (condition + single StatementList body) -- WHILE introduces no new
+// scope, so its body is analyzed/generated with the exact same
+// visitStatementList/genStatementList machinery already used for IF's
+// then/else blocks.
+struct WhileNode : ASTNode {
+    ASTNode* condition;
+    StatementListNode* body;
+    WhileNode(ASTNode* cond, StatementListNode* b, int ln)
+        : ASTNode(ASTNodeKind::While, ln), condition(cond), body(b) {}
+    ~WhileNode() override { delete condition; delete body; }
+    std::string label() const override { return "While"; }
+    std::vector<ASTNode*> children() const override { return {condition, body}; }
 };
 
 // Phase 8 addition: a user-defined FUNCTION declaration. Parameters are

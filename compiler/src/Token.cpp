@@ -13,6 +13,8 @@ std::string tokenName(int tokenCode) {
         case ELSE:       return "ELSE";
         case ENDIF:      return "ENDIF";
         case FUNCTION:   return "FUNCTION";
+        case WHILE:      return "WHILE";
+        case ENDWHILE:   return "ENDWHILE";
         case RETURN:     return "RETURN";
         case ENDFUNCTION: return "ENDFUNCTION";
         case IDENTIFIER: return "IDENTIFIER";

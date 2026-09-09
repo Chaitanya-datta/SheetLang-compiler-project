@@ -77,3 +77,25 @@ export interface HealthStatus {
   sheetcPath: string | null;
   reason?: string;
 }
+
+export interface CompilationRecord {
+  id: number;
+  timestamp: string;
+  source_code: string;
+  success: number;
+  failed_stage: string | null;
+  compile_time_ms: number;
+  token_count: number | null;
+  runtime_output: string | null;
+  runtime_exit_code: number | null;
+  error_message: string | null;
+}
+
+export interface Stats {
+  total: number;
+  successful: number;
+  failed: number;
+  successRate: number;
+  averageCompileTimeMs: number;
+  failuresByStage: { stage: string; count: number }[];
+}

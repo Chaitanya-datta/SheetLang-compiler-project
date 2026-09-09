@@ -1,0 +1,10 @@
+SHEET LoopDemo
+
+I1 = 1
+
+WHILE I1 <= 5
+    PRINT I1
+    I1 = I1 + 1
+ENDWHILE
+
+END
