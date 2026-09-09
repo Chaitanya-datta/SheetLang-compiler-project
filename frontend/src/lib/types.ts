@@ -89,6 +89,12 @@ export interface CompilationRecord {
   runtime_output: string | null;
   runtime_exit_code: number | null;
   error_message: string | null;
+  lexer_ms: number | null;
+  parser_ms: number | null;
+  semantic_ms: number | null;
+  dependency_ms: number | null;
+  llvm_ms: number | null;
+  execution_ms: number | null;
 }
 
 export interface Stats {
@@ -98,4 +104,13 @@ export interface Stats {
   successRate: number;
   averageCompileTimeMs: number;
   failuresByStage: { stage: string; count: number }[];
+  recentCompileTimes: { id: number; timestamp: string; compile_time_ms: number }[];
+  averageStageMs: {
+    lexer: number | null;
+    parser: number | null;
+    semantic: number | null;
+    dependency: number | null;
+    llvm: number | null;
+    execution: number | null;
+  };
 }

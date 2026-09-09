@@ -385,3 +385,52 @@ SheetLang Compiler → SQLite → CSV export → Power BI Desktop
 All tested via a disposable scratch build of the compiler (LLVM 18, this
 sandbox) — see "Known honest limitations" above for why, and confirmation
 that the shipped `compiler/` source is unaffected by that shim.
+
+## UI redesign — multi-page platform
+
+The frontend was restructured from a single-page app into a routed,
+multi-page platform (React Router), reflecting the actual distinct
+concerns of the project rather than cramming everything into one screen:
+
+```
+/           Home          — hero, real feature list, pipeline/data-flow diagrams
+/playground Playground     — editor, pipeline, real output tabs (unchanged core logic)
+/history    History         — redesigned: dominant Success Rate KPI, real compile-time
+                              sparkline, conditional stage/output columns, auto-selected
+                              detail panel, collapsible source
+/internals  Compiler Internals — NEW: real Tokens/AST/Symbols/Semantic/Dependencies/
+                              LLVM IR/Assembly/Build data from the most recent compile,
+                              organized into labeled sections instead of tabs
+/analytics  Analytics        — Power BI workflow, live stats snapshot, CSV export
+/docs       Documentation      — pipeline, syntax, API, DB schema, limitations
+/about      About               — real technology stack
+```
+
+A shared `CompileContext` holds the last real compile result so the
+Playground and Compiler Internals pages show the same real data without
+re-compiling or duplicating state — if nothing has been compiled yet in
+the session, Compiler Internals shows an honest "compile something
+first" state rather than fabricated data.
+
+## Backend: real per-stage timing persistence
+
+`pipeline.ts` already computed a real `durationMs` per pipeline stage
+for every request (previously only returned in the API response, never
+stored). This was a small, additive, safe enhancement: six new nullable
+columns (`lexer_ms`, `parser_ms`, `semantic_ms`, `dependency_ms`,
+`llvm_ms`, `execution_ms`) were added via `ALTER TABLE ADD COLUMN`,
+guarded by try/catch so it's idempotent on every server start — no
+destructive migration, no data loss, works whether the on-disk database
+predates this change or not (verified: existing rows and their data
+survive a server restart across the migration unchanged).
+
+`getStats()` now also returns `recentCompileTimes` (last 20 compile
+times, real, unpadded — if there are only 3 records, exactly 3 are
+returned) for the History page's sparkline, and `averageStageMs` (real
+`AVG()` per stage, successful compiles only).
+
+`exportCsv()` now includes all six new stage-timing columns for the
+Power BI "Compiler Internals" page.
+
+No existing endpoint was removed, renamed, or had its response shape
+narrowed — only new fields were added to existing response objects.
