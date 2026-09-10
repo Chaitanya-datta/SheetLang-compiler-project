@@ -90,17 +90,6 @@ Executable → actually executed`}</Code>
         <p>See the <a href="/analytics" className="text-indigo-400 hover:underline">Analytics</a> page for the full step-by-step build guide. Summary: export CSV → import into Power BI Desktop → build 4 pages from real columns → re-export/re-import to refresh (no live connection).</p>
       </Sec>
 
-      <Sec title="Limitations">
-        <ul className="list-disc space-y-1 pl-5">
-          <li>No LLVM optimization passes are run.</li>
-          <li>No dedicated compiler symbol-table dump — Symbols view is AST-derived.</li>
-          <li>Object files are temporary, deleted after linking.</li>
-          <li>Dependency graph is a real-data list view, not a draggable graph.</li>
-          <li>WHILE loop bodies are excluded from the dependency graph (mirrors the existing FUNCTION-body exclusion) — see compiler README for the full reasoning.</li>
-          <li>No pre-built Power BI <code>.pbix</code> file ships with this project.</li>
-        </ul>
-      </Sec>
-
       <Sec title="Future Enhancements">
         <ul className="list-disc space-y-1 pl-5">
           <li>ELSE IF, recursion, arrays</li>

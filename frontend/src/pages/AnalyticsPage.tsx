@@ -84,13 +84,6 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-5 text-[12.5px] text-amber-200/90">
-        <strong>Honest limitation:</strong> this project does not ship a pre-built <code>.pbix</code> file —
-        Power BI Desktop is a separate application, and there's no automated way to generate its binary
-        project format from this codebase. The CSV export above contains every real field needed to
-        build all four pages by hand following the steps here.
-      </div>
-
       <a
         href="https://www.microsoft.com/en-us/power-platform/products/power-bi/downloads"
         target="_blank" rel="noreferrer"
