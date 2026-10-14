@@ -1,0 +1,18 @@
+SHEET Aggregations
+
+// Upload a CSV file with numbers in Column A before running!
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END

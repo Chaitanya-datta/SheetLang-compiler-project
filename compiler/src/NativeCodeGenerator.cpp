@@ -11,6 +11,7 @@
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/CodeGen.h>
+#include <llvm/Support/Path.h>
 
 #include <fstream>
 #include <sstream>
@@ -47,7 +48,7 @@ bool NativeCodeGenerator::compileToExecutable(llvm::Module& module, const std::s
     llvm::Triple targetTriple(targetTripleStr);
 
     std::string lookupError;
-    const llvm::Target* target = llvm::TargetRegistry::lookupTarget(targetTriple, lookupError);
+    const llvm::Target* target = llvm::TargetRegistry::lookupTarget(targetTripleStr, lookupError);
     if (!target) {
         reportError("target initialization failed: " + lookupError +
                     " (triple: " + targetTripleStr + ")");
@@ -62,14 +63,14 @@ bool NativeCodeGenerator::compileToExecutable(llvm::Module& module, const std::s
     auto relocModel = std::optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
 
     llvm::TargetMachine* targetMachine = target->createTargetMachine(
-        targetTriple, /*CPU=*/"generic", /*Features=*/"", options, relocModel);
+        targetTripleStr, /*CPU=*/"generic", /*Features=*/"", options, relocModel);
     if (!targetMachine) {
         reportError("failed to create TargetMachine for triple " + targetTripleStr);
         return false;
     }
 
     module.setDataLayout(targetMachine->createDataLayout());
-    module.setTargetTriple(targetTriple);
+    module.setTargetTriple(targetTripleStr);
 
     // --- 2. Emit an object file ---------------------------------------
     std::string objectPath = outputPath + ".sheetlang.o";
@@ -123,7 +124,16 @@ bool NativeCodeGenerator::compileToExecutable(llvm::Module& module, const std::s
     llvm::SmallString<128> stderrPath;
     llvm::sys::fs::createTemporaryFile("sheetlang-link-stderr", "log", stderrPath);
 
-    std::vector<llvm::StringRef> args = {linkerDriver, objectPath, "-o", outputPath};
+    // Find runtime.o alongside the sheetc executable
+    std::string exePathStr = llvm::sys::fs::getMainExecutable(nullptr, nullptr);
+    std::string runtimeObj = llvm::sys::path::parent_path(exePathStr).str() + "/runtime.o";
+
+    std::vector<llvm::StringRef> args;
+    if (llvm::sys::fs::exists(runtimeObj)) {
+        args = {linkerDriver, objectPath, runtimeObj, "-o", outputPath};
+    } else {
+        args = {linkerDriver, objectPath, "-o", outputPath};
+    }
     std::optional<llvm::StringRef> redirects[3] = {
         std::nullopt,                       // stdin: inherit
         std::nullopt,                       // stdout: inherit

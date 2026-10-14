@@ -59,6 +59,11 @@ add_executable(sheetc
     ${BISON_SheetParser_OUTPUTS}
 )
 
+add_custom_command(
+    TARGET sheetc POST_BUILD
+    COMMAND cc -c ${CMAKE_SOURCE_DIR}/src/runtime.c -o ${CMAKE_CURRENT_BINARY_DIR}/runtime.o
+)
+
 target_include_directories(sheetc PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR}

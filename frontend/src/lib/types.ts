@@ -62,6 +62,7 @@ export interface CompileResult {
   object: { generated: boolean; note: string };
   build: { linked: boolean; executablePath?: string; error?: string } | null;
   runtime: { stdout: string; stderr: string; exitCode: number; durationMs: number; timedOut: boolean } | null;
+  updatedCsvData?: string;
 }
 
 export interface ExampleMeta {

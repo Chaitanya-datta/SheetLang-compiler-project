@@ -11,3 +11,7 @@ backend/data/
 *.db-wal
 .env
 .DS_Store
+.idea/
+.vscode/
+program
+

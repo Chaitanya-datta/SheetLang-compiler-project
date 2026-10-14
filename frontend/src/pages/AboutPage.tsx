@@ -1,33 +1,46 @@
+import { Info, Layers, Terminal, Cpu, Database, BarChart3, ShieldCheck } from "lucide-react";
+
 const STACK = [
-  { cat: "Frontend", items: ["React", "TypeScript", "Vite", "Tailwind CSS", "Monaco Editor", "React Router"] },
-  { cat: "Backend", items: ["Node.js", "Express", "TypeScript"] },
-  { cat: "Compiler", items: ["C++17", "Flex", "Bison", "CMake"] },
-  { cat: "Code Generation", items: ["LLVM 22.1.8", "llvm::Triple-based TargetMachine", "system linker (cc/clang/gcc)"] },
-  { cat: "Database", items: ["SQLite via node:sqlite"] },
-  { cat: "Analytics", items: ["CSV export", "Power BI Desktop"] },
+  { cat: "Frontend Studio", icon: Terminal, items: ["React 19", "TypeScript", "Vite 8", "Tailwind CSS v4", "Monaco Editor (VS Code)", "React Router 7"] },
+  { cat: "Compiler Core", icon: Cpu, items: ["C++17", "Flex Scanner", "Bison LALR(1)", "CMake Toolchain"] },
+  { cat: "Code Generation", icon: Layers, items: ["LLVM 18/22 TargetMachine", "SSA Form Builder", "llvm::verifyModule", "Native Host Linker (cc/clang/ld)"] },
+  { cat: "Spreadsheet Runtime", icon: ShieldCheck, items: ["C Standard Library Memory Allocator", "CSV Injector", "Range Macro Expander"] },
+  { cat: "Backend Server", icon: Database, items: ["Node.js v26", "Express API", "TypeScript", "Secure execFile Sandboxing"] },
+  { cat: "Telemetry & Storage", icon: BarChart3, items: ["SQLite via node:sqlite", "Power BI Desktop Connector", "CSV Exporter"] },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-[820px] p-8">
-      <div className="text-lg font-semibold text-slate-100">SheetLang</div>
-      <p className="mt-2 max-w-xl text-[13px] text-slate-500">
-        A lightweight programming language and compiler analytics platform — built as a real
-        compiler (lexer through native code generation), with a web-based playground and
-        SQLite-backed compilation analytics.
-      </p>
+    <div className="mx-auto max-w-[950px] p-8 space-y-6">
+      <div className="border-b border-white/5 pb-4">
+        <div className="flex items-center gap-2">
+          <Info size={20} className="text-emerald-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-100 font-mono">System Architecture & Technology Stack</h1>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Complete breakdown of software engineering components powering the SheetLang compiler platform.
+        </p>
+      </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {STACK.map((s) => (
-          <div key={s.cat} className="rounded-lg border border-[#26313c] bg-[#111820] p-4">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{s.cat}</div>
-            <div className="flex flex-wrap gap-1.5">
-              {s.items.map((i) => (
-                <span key={i} className="rounded bg-white/5 px-2 py-1 text-[12px] text-slate-300">{i}</span>
-              ))}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {STACK.map((s) => {
+          const Icon = s.icon;
+          return (
+            <div key={s.cat} className="glass-card-interactive rounded-2xl border border-white/10 bg-[#080d16] p-5 shadow-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <Icon size={16} className="text-emerald-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">{s.cat}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {s.items.map((i) => (
+                  <span key={i} className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs font-mono text-emerald-300">
+                    {i}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

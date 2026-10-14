@@ -1,0 +1,394 @@
+id,timestamp,source_code,success,failed_stage,compile_time_ms,token_count,runtime_output,runtime_exit_code,error_message,lexer_ms,parser_ms,semantic_ms,dependency_ms,llvm_ms,execution_ms
+1,2026-09-16T10:28:23.709Z,"SHEET DataProcessingTest
+
+LET TotalJan = A1 + B1
+LET TotalFeb = A2 + B2
+LET TotalMar = A3 + B3
+LET TotalApr = A4 + B4
+
+PRINT C1
+PRINT TotalJan
+
+PRINT C2
+PRINT TotalFeb
+
+PRINT C3
+PRINT TotalMar
+
+PRINT C4
+PRINT TotalApr
+
+END",1,,136.917,79,"January
+350.000000
+February
+450.000000
+March
+550.000000
+April
+650.000000
+",0,,19.915,6.928,11.038,9.54,11.343,4.018
+2,2026-09-16T10:41:48.660Z,"SHEET AggregateTesting
+
+LET TotalSum = SUM(A1:B4)
+LET Average = AVG(A1:B4)
+LET Items = COUNT(A1:B4)
+
+PRINT ""Grand Total:""
+PRINT TotalSum
+
+PRINT ""Average Value:""
+PRINT Average
+
+PRINT ""Total Items Counted:""
+PRINT Items
+
+PRINT ""UPDATE_CELL:E1""
+PRINT TotalSum
+
+END",1,,104.78999999999999,100,"Grand Total:
+2000.000000
+Average Value:
+250.000000
+Total Items Counted:
+8.000000
+UPDATE_CELL:E1
+2000.000000
+",0,,5.975,5.629,11.329,9.808,8.825,2.243
+3,2026-09-16T10:58:53.552Z,"SHEET Phase8Function
+
+FUNCTION test()
+    PRINT 42
+ENDFUNCTION
+
+test()
+
+END
+",1,,98.81700000000001,13,"42.000000
+",0,,8.971,7.198,7.008,10.725,12.402,2.137
+4,2026-09-16T12:46:11.783Z,"SHEET StringOperations
+
+LET text1 = ""  SheetLang  ""
+LET text2 = ""Rocks!""
+
+LET cleaned = TRIM(text1)
+PRINT cleaned
+
+LET upper_text = UPPER(cleaned)
+PRINT upper_text
+
+LET lower_text = LOWER(cleaned)
+PRINT lower_text
+
+LET combined = CONCAT(cleaned, "" "")
+LET final = CONCAT(combined, text2)
+PRINT final
+
+END
+",1,,163.91400000000002,56,"SheetLang
+SHEETLANG
+sheetlang
+SheetLang Rocks!
+",0,,23.888,11.062,11.448,12.281,12.544,3.722
+5,2026-09-16T12:46:18.849Z,"SHEET NativeSemanticError
+
+LET A = 10
+LET A = 20
+
+PRINT A
+
+END
+",0,semantic,28.528,13,,,Duplicate declaration of 'A' (line 4),8.845,11.193,8.49,0,0,0
+6,2026-09-16T12:48:34.779Z,"SHEET Student
+
+LET Maths = 90
+LET Physics = 85
+LET Chemistry = 80
+
+LET Total = Maths + Physics + Chemistry
+LET Average = Total / 3
+
+IF Average >= 85
+    PRINT ""Distinction""
+ELSE
+    PRINT ""First Class""
+ENDIF
+
+PRINT Total
+PRINT Average
+
+END
+",1,,121.534,42,"Distinction
+255.000000
+85.000000
+",0,,8.127,8.113,9.112,11.416,11.133,3.659
+7,2026-09-16T12:50:33.412Z,"SHEET Aggregations
+
+LET TOT = A1
+LET TO = A2
+PRINT TOT+TO
+END
+",1,,119.46199999999999,51,"250.000000
+",0,,8.796,7.836,6.966,7.714,10.764,2.735
+8,2026-09-16T13:26:51.137Z,"SHEET Aggregations
+
+// Upload a CSV file with numbers in Column A before running!
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,lexer,8.369,64,,,"Unexpected character '!' at line 3, column 61",8.369,0,0,0,0,0
+9,2026-09-16T13:27:12.426Z,"SHEET Aggregations
+
+// Upload a CSV file with numbers in Column A before running!
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,lexer,9.187,64,,,"Unexpected character '!' at line 3, column 61",9.187,0,0,0,0,0
+10,2026-09-16T13:27:19.485Z,"SHEET Aggregations
+
+// Upload a CSV file with numbers in Column A before running
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,parser,19.465,64,,,"Syntax Error: syntax error at line 3
+Parsing failed.",10.31,9.155,0,0,0,0
+11,2026-09-16T13:27:47.760Z,"SHEET Aggregations
+
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,semantic,32.699,43,,,Undefined cell 'A1' (line 8); Undefined cell 'A2' (line 8); Undefined cell 'A1' (line 9); Undefined cell 'A2' (line 9),8.993,9.687,14.019,0,0,0
+12,2026-09-16T13:28:10.001Z,"SHEET Student
+
+LET Maths = 90
+LET Physics = 85
+LET Chemistry = 80
+
+LET Total = Maths + Physics + Chemistry
+LET Average = Total / 3
+
+IF Average >= 85
+    PRINT ""Distinction""
+ELSE
+    PRINT ""First Class""
+ENDIF
+
+PRINT Total
+PRINT Average
+
+END
+",1,,112.82,78,"Distinction
+255.000000
+85.000000
+",0,,10.372,10.834,9.105,8.196,10.547,3.31
+13,2026-09-16T13:28:17.306Z,"SHEET Aggregations
+
+// Upload a CSV file with numbers in Column A before running!
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,lexer,8.808,120,,,"Unexpected character '!' at line 16, column 61",8.808,0,0,0,0,0
+14,2026-09-16T13:28:44.200Z,"SHEET Aggregations
+
+
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,parser,16.874000000000002,107,,,"Syntax Error: syntax error at line 21
+Parsing failed.",7.792,9.082,0,0,0,0
+15,2026-09-23T12:24:15.005Z,"SHEET Aggregations
+
+// Upload a CSV file with numbers in Column A before running!
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,lexer,26.464,120,,,"Unexpected character '!' at line 16, column 61",26.464,0,0,0,0,0
+16,2026-09-23T12:25:00.654Z,"SHEET Aggregations
+
+
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+// MAX and MIN take two arguments
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,parser,18.993000000000002,107,,,"Syntax Error: syntax error at line 21
+Parsing failed.",9.419,9.574,0,0,0,0
+17,2026-09-23T12:27:54.490Z,"SHEET Aggregations
+
+
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,llvmIr,55.701,99,,,"Semantic analysis successful.
+Dependency analysis successful.
+Code Generation Error: function call code generation ('MAX') is not implemented for built-in functions (out of scope: SUM/AVG/MAX/MIN/ABS are validated semantically but not code-generated; only user-defined FUNCTION declarations are)
+LLVM IR generation failed.",9.255,12.313,11.136,9.443,13.554,0
+18,2026-09-23T12:28:12.956Z,"SHEET StringOperations
+
+LET text1 = ""  SheetLang  ""
+LET text2 = ""Rocks!""
+
+LET cleaned = TRIM(text1)
+PRINT cleaned
+
+LET upper_text = UPPER(cleaned)
+PRINT upper_text
+
+LET lower_text = LOWER(cleaned)
+PRINT lower_text
+
+LET combined = CONCAT(cleaned, "" "")
+LET final = CONCAT(combined, text2)
+PRINT final
+
+END
+",1,,122.87799999999999,92,"SheetLang
+SHEETLANG
+sheetlang
+SheetLang Rocks!
+",0,,9.716,9.279,10.141,7.525,9.94,3.213
+19,2026-09-23T12:32:43.875Z,"SHEET Aggregations
+
+
+LET total = SUM(A1:A5)
+LET average = AVG(A1:A5)
+LET count = COUNT(A1:A5)
+
+
+LET maximum = MAX(A1, A2)
+LET minimum = MIN(A1, A2)
+
+PRINT total
+PRINT average
+PRINT count
+PRINT maximum
+PRINT minimum
+
+END
+",0,llvmIr,47.870999999999995,99,,,"Semantic analysis successful.
+Dependency analysis successful.
+Code Generation Error: function call code generation ('MAX') is not implemented for built-in functions (out of scope: SUM/AVG/MAX/MIN/ABS are validated semantically but not code-generated; only user-defined FUNCTION declarations are)
+LLVM IR generation failed.",10.766,10.857,10.133,7.751,8.364,0
+20,2026-10-14T09:51:50.930Z,"SHEET Student
+
+LET Maths = 90
+LET Physics = 85
+LET Chemistry = 80
+
+LET Total = Maths + Physics + Chemistry
+LET Average = Total / 3
+
+PRINT ""Student Marks""
+PRINT Total
+PRINT Average
+
+END
+",1,,145.50400000000002,34,"Student Marks
+255.000000
+85.000000
+",0,,24.519,9.048,9.912,8.454,11.07,3.447

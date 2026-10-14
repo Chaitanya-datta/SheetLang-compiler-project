@@ -45,6 +45,8 @@ const EXAMPLES: ExampleEntry[] = [
   { id: "phase8_combined", label: "phase8_combined.sheet", file: "phase8_combined.sheet", category: "Combined" },
   { id: "loop_basic", label: "loop_basic.sheet", file: "loop_basic.sheet", category: "Loops" },
   { id: "loop_sum", label: "loop_sum.sheet", file: "loop_sum.sheet", category: "Loops" },
+  { id: "csv_aggregations", label: "csv_aggregations.sheet", file: "csv_aggregations.sheet", category: "CSV Features" },
+  { id: "csv_string_operations", label: "csv_string_operations.sheet", file: "csv_string_operations.sheet", category: "CSV Features" },
   { id: "native_semantic_error", label: "native_semantic_error.sheet", file: "native_semantic_error.sheet", category: "Error Cases" },
   { id: "native_syntax_error", label: "native_syntax_error.sheet", file: "native_syntax_error.sheet", category: "Error Cases" },
   { id: "native_invalid_character", label: "native_invalid_character.sheet", file: "native_invalid_character.sheet", category: "Error Cases" },
@@ -99,13 +101,14 @@ app.get("/api/examples/:id", async (req: Request, res: Response) => {
 
 app.post("/api/compile", async (req: Request, res: Response) => {
   const source = req.body && typeof req.body.source === "string" ? req.body.source : null;
+  const csvData = req.body && typeof req.body.csvData === "string" ? req.body.csvData : undefined;
   if (source === null) {
     return res.status(400).json({ success: false, error: "Request body must contain a string 'source' field." });
   }
   if (Buffer.byteLength(source, "utf8") > MAX_SOURCE_BYTES) {
     return res.status(413).json({ success: false, error: `Source exceeds maximum size of ${MAX_SOURCE_BYTES} bytes.` });
   }
-  const result = await compile(source);
+  const result = await compile(source, csvData);
   // Log every real compilation (success or failure) to SQLite -- this is
   // the only place compilation history is written from; nothing is
   // backfilled or synthesized elsewhere.

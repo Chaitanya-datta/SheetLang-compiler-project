@@ -1,0 +1,19 @@
+SHEET StringOperations
+
+LET text1 = "  SheetLang  "
+LET text2 = "Rocks!"
+
+LET cleaned = TRIM(text1)
+PRINT cleaned
+
+LET upper_text = UPPER(cleaned)
+PRINT upper_text
+
+LET lower_text = LOWER(cleaned)
+PRINT lower_text
+
+LET combined = CONCAT(cleaned, " ")
+LET final = CONCAT(combined, text2)
+PRINT final
+
+END

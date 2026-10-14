@@ -13,13 +13,15 @@ export type TabName = (typeof TABS)[number];
 
 export function TabBar({ active, onSelect }: { active: TabName; onSelect: (t: TabName) => void }) {
   return (
-    <div className="flex gap-1 overflow-x-auto border-b border-[#26313c] bg-[#0d1017] px-3">
+    <div className="flex gap-1 overflow-x-auto border-b border-white/5 bg-[#090d16] px-3 py-2 select-none">
       {TABS.map((t) => (
         <button
           key={t}
           onClick={() => onSelect(t)}
-          className={`whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-medium transition-colors ${
-            active === t ? "border-indigo-500 text-indigo-300" : "border-transparent text-slate-500 hover:text-slate-300"
+          className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-mono font-medium transition-all ${
+            active === t
+              ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/15 border border-emerald-500/30 text-emerald-300 shadow-sm"
+              : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
           }`}
         >
           {t}

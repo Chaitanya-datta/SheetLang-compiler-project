@@ -2,11 +2,11 @@ import type { CompileResult, ExampleMeta, HealthStatus, CompilationRecord, Stats
 
 // This module is the frontend's ONLY interface to the backend/compiler.
 // There is no compiler logic anywhere else in this codebase.
-export async function compileSource(source: string): Promise<CompileResult> {
+export async function compileSource(source: string, csvData?: string): Promise<CompileResult> {
   const res = await fetch("/api/compile", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ source }),
+    body: JSON.stringify({ source, csvData }),
   });
   return res.json();
 }

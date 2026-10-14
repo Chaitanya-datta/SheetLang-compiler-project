@@ -72,7 +72,7 @@ private:
     // function's local variables (including its parameters) never leak
     // into the surrounding scope's maps, and vice versa.
     std::unordered_map<std::string, llvm::AllocaInst*> numericVars_;
-    std::unordered_map<std::string, std::string> stringVars_; // name -> literal text
+    std::unordered_map<std::string, llvm::AllocaInst*> stringVars_; // name -> char** (alloca for i8*)
     std::unordered_map<std::string, llvm::Constant*> stringLiteralGlobals_; // text -> deduped global
 
     // Phase 8: user-defined SheetLang functions, keyed by name, mapped to
@@ -89,6 +89,12 @@ private:
     llvm::Constant* fmtNumeric_ = nullptr; // cached "%f\n" global, for PRINT of numbers
     llvm::Constant* fmtString_ = nullptr;  // cached "%s\n" global, for PRINT of strings
     llvm::FunctionCallee printfFn_;
+    
+    // Phase 2 String runtime functions
+    llvm::FunctionCallee concatFn_;
+    llvm::FunctionCallee upperFn_;
+    llvm::FunctionCallee lowerFn_;
+    llvm::FunctionCallee trimFn_;
 
     void reportError(const std::string& msg);
 

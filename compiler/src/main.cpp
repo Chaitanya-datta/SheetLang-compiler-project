@@ -349,7 +349,7 @@ static void run_asm(const std::string &path, const std::string &outputFile) {
     llvm::Triple targetTriple(targetTripleStr);
 
     std::string lookupError;
-    const llvm::Target* target = llvm::TargetRegistry::lookupTarget(targetTriple, lookupError);
+    const llvm::Target* target = llvm::TargetRegistry::lookupTarget(targetTripleStr, lookupError);
     if (!target) {
         std::cerr << "Error: target initialization failed: " << lookupError << std::endl;
         std::exit(1);
@@ -358,14 +358,14 @@ static void run_asm(const std::string &path, const std::string &outputFile) {
     llvm::TargetOptions options;
     auto relocModel = std::optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     llvm::TargetMachine* targetMachine = target->createTargetMachine(
-        targetTriple, "generic", "", options, relocModel);
+        targetTripleStr, "generic", "", options, relocModel);
     if (!targetMachine) {
         std::cerr << "Error: failed to create TargetMachine." << std::endl;
         std::exit(1);
     }
 
     module->setDataLayout(targetMachine->createDataLayout());
-    module->setTargetTriple(targetTriple);
+    module->setTargetTriple(targetTripleStr);
 
     llvm::SmallString<0> asmBuf;
     llvm::raw_svector_ostream asmStream(asmBuf);

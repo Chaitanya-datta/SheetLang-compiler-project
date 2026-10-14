@@ -10,6 +10,10 @@ bool SemanticAnalyzer::builtinArity(const std::string& name, size_t& arity) {
     if (name == "MAX") { arity = 2; return true; }
     if (name == "MIN") { arity = 2; return true; }
     if (name == "ABS") { arity = 1; return true; }
+    if (name == "CONCAT") { arity = 2; return true; }
+    if (name == "UPPER") { arity = 1; return true; }
+    if (name == "LOWER") { arity = 1; return true; }
+    if (name == "TRIM") { arity = 1; return true; }
     return false;
 }
 
@@ -305,19 +309,21 @@ SemanticType SemanticAnalyzer::visitFunctionCall(const FunctionCallNode* node) {
                 std::to_string(node->args.size()));
         }
 
-        bool hasStringArg = false;
+        bool isStringFunc = (node->name == "CONCAT" || node->name == "UPPER" || node->name == "LOWER" || node->name == "TRIM");
+        bool hasWrongArg = false;
+        
         for (auto* arg : node->args) {
             SemanticType t = visitExpr(arg);
-            if (t == SemanticType::String) hasStringArg = true;
-            // Unknown-typed args mean their own root cause was already
-            // reported (e.g. undefined identifier); don't add a second
-            // error for the same argument here.
+            if (isStringFunc && t == SemanticType::Number) hasWrongArg = true;
+            if (!isStringFunc && t == SemanticType::String) hasWrongArg = true;
         }
-        if (hasStringArg) {
-            reportError(node->line, "Function '" + node->name + "' requires NUMBER arguments");
+        
+        if (hasWrongArg) {
+            reportError(node->line, "Function '" + node->name + "' requires " + 
+                std::string(isStringFunc ? "STRING" : "NUMBER") + " arguments");
         }
 
-        return SemanticType::Number;
+        return isStringFunc ? SemanticType::String : SemanticType::Number;
     }
 
     // Phase 8: user-defined function. Checked the same way as a builtin

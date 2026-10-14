@@ -1,0 +1,10 @@
+SHEET StringTest
+
+LET greeting = "  hello  "
+PRINT greeting
+PRINT TRIM(greeting)
+PRINT UPPER(greeting)
+PRINT LOWER("WORLD")
+PRINT CONCAT(TRIM(greeting), " world")
+
+END

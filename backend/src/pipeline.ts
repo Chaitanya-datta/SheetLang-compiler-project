@@ -51,6 +51,7 @@ export interface CompileResponse {
   object: { generated: boolean; note: string };
   build: { linked: boolean; executablePath?: string; error?: string } | null;
   runtime: { stdout: string; stderr: string; exitCode: number; durationMs: number; timedOut: boolean } | null;
+  updatedCsvData?: string;
 }
 
 const OPTIMIZATION_NOTE =
@@ -61,7 +62,7 @@ const OBJECT_NOTE =
   "The intermediate .o file is written to a temporary path and deleted immediately after linking -- " +
   "it is never retained, so there is nothing to display or download beyond this status.";
 
-export async function compile(source: string): Promise<CompileResponse> {
+export async function compile(source: string, csvData?: string): Promise<CompileResponse> {
   const stages: StageResult[] = [];
   const result: CompileResponse = {
     success: false,
@@ -93,6 +94,81 @@ export async function compile(source: string): Promise<CompileResponse> {
   const jobId = crypto.randomUUID();
   const jobDir = path.join(os.tmpdir(), "sheetlang", jobId);
   await fs.mkdir(jobDir, { recursive: true });
+
+  const validCells = new Set<string>();
+
+  if (csvData) {
+    const lines = csvData.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const assignments: string[] = [];
+    for (let r = 0; r < lines.length; r++) {
+      const cols = lines[r].split(',').map(c => c.trim());
+      for (let c = 0; c < cols.length; c++) {
+        if (!cols[c]) continue; // Skip empty cells
+        
+        // Convert column index to letters (A, B, ..., Z, AA, etc.)
+        let colName = "";
+        let curr = c;
+        while (curr >= 0) {
+          colName = String.fromCharCode(65 + (curr % 26)) + colName;
+          curr = Math.floor(curr / 26) - 1;
+        }
+        
+        const cellName = `${colName}${r + 1}`;
+        validCells.add(cellName); // Record valid cell
+        // Only assign if it looks like a valid number or string
+        const isNum = !isNaN(Number(cols[c]));
+        const val = isNum ? cols[c] : `"${cols[c].replace(/"/g, '')}"`;
+        assignments.push(`${cellName} = ${val}`);
+      }
+    }
+    
+    if (assignments.length > 0) {
+      const injectStr = '\n' + assignments.join('\n') + '\n';
+      const match = source.match(/^SHEET\s+\w+/m);
+      if (match) {
+        source = source.replace(match[0], match[0] + injectStr);
+      } else {
+        source = injectStr + source;
+      }
+    }
+  }
+
+  // Macro-expand aggregate ranges (e.g. SUM(A1:B3) -> (A1 + A2 ...))
+  const aggRegex = /(SUM|AVG|COUNT)\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/g;
+  source = source.replace(aggRegex, (match, func, startCol, startRow, endCol, endRow) => {
+    let sColIdx = 0;
+    for (let i = 0; i < startCol.length; i++) sColIdx = sColIdx * 26 + (startCol.charCodeAt(i) - 64);
+    let eColIdx = 0;
+    for (let i = 0; i < endCol.length; i++) eColIdx = eColIdx * 26 + (endCol.charCodeAt(i) - 64);
+    
+    const sCol = Math.min(sColIdx, eColIdx);
+    const eCol = Math.max(sColIdx, eColIdx);
+    const sRow = Math.min(parseInt(startRow, 10), parseInt(endRow, 10));
+    const eRow = Math.max(parseInt(startRow, 10), parseInt(endRow, 10));
+    
+    const cells: string[] = [];
+    for (let r = sRow; r <= eRow; r++) {
+      for (let c = sCol; c <= eCol; c++) {
+        let colName = "";
+        let curr = c - 1;
+        while (curr >= 0) {
+          colName = String.fromCharCode(65 + (curr % 26)) + colName;
+          curr = Math.floor(curr / 26) - 1;
+        }
+        cells.push(`${colName}${r}`);
+      }
+    }
+    
+    const presentCells = cells.filter(c => validCells.has(c));
+    if (presentCells.length === 0) return "0";
+    
+    if (func === "SUM") return `(${presentCells.join(" + ")})`;
+    if (func === "AVG") return `((${presentCells.join(" + ")}) / ${presentCells.length})`;
+    if (func === "COUNT") return `${presentCells.length}`;
+    
+    return match;
+  });
+
   const sourcePath = path.join(jobDir, "source.sheet");
   await fs.writeFile(sourcePath, source, "utf8");
 
@@ -252,6 +328,66 @@ export async function compile(source: string): Promise<CompileResponse> {
       timedOut: runResult.timedOut,
     };
     record("runtime", "Runtime", runResult.exitCode === 0 ? "success" : "failed", runResult.durationMs, runResult.stdout);
+
+    if (csvData && runResult.stdout) {
+      const updates = new Map<string, string>();
+      const lines = runResult.stdout.split('\n');
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith("UPDATE_CELL:")) {
+          const cellName = line.replace("UPDATE_CELL:", "").trim();
+          const value = lines[i + 1].trim();
+          if (cellName && value) {
+            updates.set(cellName, value);
+            i++; // skip next line as it's the value
+          }
+        }
+      }
+
+      if (updates.size > 0) {
+        const csvLines = csvData.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let maxRow = csvLines.length;
+        let maxCol = Math.max(...csvLines.map(l => l.split(',').length));
+
+        for (const cellName of updates.keys()) {
+          const match = cellName.match(/^([A-Z]+)(\d+)$/);
+          if (match) {
+            const colStr = match[1];
+            let colIdx = 0;
+            for (let i = 0; i < colStr.length; i++) {
+              colIdx = colIdx * 26 + (colStr.charCodeAt(i) - 64);
+            }
+            maxCol = Math.max(maxCol, colIdx);
+            maxRow = Math.max(maxRow, parseInt(match[2], 10));
+          }
+        }
+
+        const grid: string[][] = Array.from({length: maxRow}, () => Array(maxCol).fill(""));
+        for (let r = 0; r < csvLines.length; r++) {
+          const cols = csvLines[r].split(',').map(c => c.trim());
+          for (let c = 0; c < cols.length; c++) {
+            grid[r][c] = cols[c];
+          }
+        }
+
+        for (const [cellName, value] of updates.entries()) {
+          const match = cellName.match(/^([A-Z]+)(\d+)$/);
+          if (match) {
+            const colStr = match[1];
+            let colIdx = 0;
+            for (let i = 0; i < colStr.length; i++) {
+              colIdx = colIdx * 26 + (colStr.charCodeAt(i) - 64);
+            }
+            const c = colIdx - 1;
+            const r = parseInt(match[2], 10) - 1;
+            if (r >= 0 && c >= 0 && r < maxRow && c < maxCol) {
+              grid[r][c] = value;
+            }
+          }
+        }
+        result.updatedCsvData = grid.map(row => row.join(', ')).join('\n');
+      }
+    }
 
     result.success = true;
     return finalize(result, jobDir);

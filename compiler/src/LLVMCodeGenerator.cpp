@@ -69,9 +69,6 @@ std::unique_ptr<llvm::Module> LLVMCodeGenerator::generate(const ASTNode* root) {
 }
 
 void LLVMCodeGenerator::declarePrintfAndFormats() {
-    // printf(ptr, ...) -> i32, using an opaque pointer for the format
-    // string argument (LLVM 22 default; also valid on the LLVM 18 used
-    // to test this build -- see README "LLVM API notes").
     llvm::PointerType* ptrTy = llvm::PointerType::get(context_, 0);
     llvm::FunctionType* printfTy = llvm::FunctionType::get(
         llvm::Type::getInt32Ty(context_), {ptrTy}, /*isVarArg=*/true);
@@ -79,6 +76,14 @@ void LLVMCodeGenerator::declarePrintfAndFormats() {
 
     fmtNumeric_ = builder_->CreateGlobalString("%f\n", "fmt.numeric", 0, module_);
     fmtString_ = builder_->CreateGlobalString("%s\n", "fmt.string", 0, module_);
+
+    llvm::FunctionType* strFuncTy = llvm::FunctionType::get(ptrTy, {ptrTy}, false);
+    llvm::FunctionType* concatFuncTy = llvm::FunctionType::get(ptrTy, {ptrTy, ptrTy}, false);
+    
+    concatFn_ = module_->getOrInsertFunction("sheetlang_concat", concatFuncTy);
+    upperFn_ = module_->getOrInsertFunction("sheetlang_upper", strFuncTy);
+    lowerFn_ = module_->getOrInsertFunction("sheetlang_lower", strFuncTy);
+    trimFn_ = module_->getOrInsertFunction("sheetlang_trim", strFuncTy);
 }
 
 llvm::Constant* LLVMCodeGenerator::getOrCreateStringGlobal(const std::string& text, const std::string& hint) {
@@ -147,56 +152,32 @@ bool LLVMCodeGenerator::genAssignment(const AssignmentNode* node) {
         return false;
     }
 
-    if (node->expr->kind == ASTNodeKind::StringLiteral) {
-        // STRING-valued assignment: no alloca is created for this name --
-        // see header comment for why. If this name previously held a
-        // NUMBER value (legal for a reassigned CELL under current
-        // semantic rules), drop the stale numeric mapping so a later
-        // PRINT uses the new string value, not the old numeric slot.
-        stringVars_[name] = static_cast<const StringLiteralNode*>(node->expr)->value;
-        numericVars_.erase(name);
-        return true;
-    }
-
     llvm::Value* val = genExpr(node->expr);
     if (!val) return false;
 
-    // Symmetric to the case above: if this name previously held a STRING
-    // value, drop it now that it holds a NUMBER.
-    stringVars_.erase(name);
-    llvm::AllocaInst* slot = getOrCreateAlloca(name);
-    builder_->CreateStore(val, slot);
+    if (val->getType()->isPointerTy()) {
+        numericVars_.erase(name);
+        llvm::PointerType* ptrTy = llvm::PointerType::get(context_, 0);
+        auto it = stringVars_.find(name);
+        llvm::AllocaInst* slot = (it != stringVars_.end()) ? it->second : builder_->CreateAlloca(ptrTy, nullptr, name);
+        stringVars_[name] = slot;
+        builder_->CreateStore(val, slot);
+    } else {
+        stringVars_.erase(name);
+        llvm::AllocaInst* slot = getOrCreateAlloca(name);
+        builder_->CreateStore(val, slot);
+    }
     return true;
 }
 
 bool LLVMCodeGenerator::genPrint(const PrintNode* node) {
-    const ASTNode* expr = node->expr;
-
-    if (expr->kind == ASTNodeKind::StringLiteral) {
-        const auto& text = static_cast<const StringLiteralNode*>(expr)->value;
-        llvm::Constant* strPtr = getOrCreateStringGlobal(text, "str");
-        builder_->CreateCall(printfFn_, {fmtString_, strPtr});
-        return true;
-    }
-
-    if (expr->kind == ASTNodeKind::Identifier || expr->kind == ASTNodeKind::Cell) {
-        std::string name = (expr->kind == ASTNodeKind::Identifier)
-            ? static_cast<const IdentifierNode*>(expr)->name
-            : static_cast<const CellNode*>(expr)->name;
-
-        auto sIt = stringVars_.find(name);
-        if (sIt != stringVars_.end()) {
-            llvm::Constant* strPtr = getOrCreateStringGlobal(sIt->second, "str");
-            builder_->CreateCall(printfFn_, {fmtString_, strPtr});
-            return true;
-        }
-        // Not a string variable -- fall through to the general numeric
-        // path below via genExpr (handles the "undeclared" case too).
-    }
-
-    llvm::Value* val = genExpr(expr);
+    llvm::Value* val = genExpr(node->expr);
     if (!val) return false;
-    builder_->CreateCall(printfFn_, {fmtNumeric_, val});
+    if (val->getType()->isPointerTy()) {
+        builder_->CreateCall(printfFn_, {fmtString_, val});
+    } else {
+        builder_->CreateCall(printfFn_, {fmtNumeric_, val});
+    }
     return true;
 }
 
@@ -398,9 +379,10 @@ llvm::Value* LLVMCodeGenerator::genExpr(const ASTNode* expr) {
             if (numIt != numericVars_.end()) {
                 return builder_->CreateLoad(llvm::Type::getDoubleTy(context_), numIt->second, name);
             }
-            if (stringVars_.count(name)) {
-                reportError("cannot use STRING variable '" + name + "' in a numeric expression");
-                return nullptr;
+            auto strIt = stringVars_.find(name);
+            if (strIt != stringVars_.end()) {
+                llvm::PointerType* ptrTy = llvm::PointerType::get(context_, 0);
+                return builder_->CreateLoad(ptrTy, strIt->second, name);
             }
             reportError("internal error: reference to undeclared symbol '" + name +
                         "' during code generation (should have been caught by semantic analysis)");
@@ -433,13 +415,10 @@ llvm::Value* LLVMCodeGenerator::genExpr(const ASTNode* expr) {
             return nullptr;
         }
 
-        case ASTNodeKind::StringLiteral:
-            // Only reachable if a string literal appears somewhere other
-            // than a direct assignment RHS or a direct PRINT argument
-            // (e.g. inside arithmetic) -- semantic analysis already
-            // rejects that, so this is a defensive-only path.
-            reportError("a string literal cannot be used as a numeric value");
-            return nullptr;
+        case ASTNodeKind::StringLiteral: {
+            const auto& text = static_cast<const StringLiteralNode*>(expr)->value;
+            return getOrCreateStringGlobal(text, "str");
+        }
 
         case ASTNodeKind::Comparison:
             // Comparisons only ever appear as an IF condition in the
@@ -467,6 +446,23 @@ llvm::Value* LLVMCodeGenerator::genExpr(const ASTNode* expr) {
                     argVals.push_back(v);
                 }
                 return builder_->CreateCall(userIt->second, argVals, "calltmp");
+            }
+            
+            if (f->name == "CONCAT" || f->name == "UPPER" || f->name == "LOWER" || f->name == "TRIM") {
+                std::vector<llvm::Value*> argVals;
+                for (auto* argExpr : f->args) {
+                    llvm::Value* v = genExpr(argExpr);
+                    if (!v) return nullptr;
+                    if (!v->getType()->isPointerTy()) {
+                        reportError("string functions require string arguments");
+                        return nullptr;
+                    }
+                    argVals.push_back(v);
+                }
+                if (f->name == "CONCAT") return builder_->CreateCall(concatFn_, argVals, "calltmp");
+                if (f->name == "UPPER") return builder_->CreateCall(upperFn_, argVals, "calltmp");
+                if (f->name == "LOWER") return builder_->CreateCall(lowerFn_, argVals, "calltmp");
+                if (f->name == "TRIM") return builder_->CreateCall(trimFn_, argVals, "calltmp");
             }
 
             // Not a user-defined function -- must be one of the fixed

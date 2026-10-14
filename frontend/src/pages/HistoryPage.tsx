@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, XCircle, Download, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, XCircle, Download, ChevronDown, ChevronRight, Activity } from "lucide-react";
 import { fetchHistory, fetchStats } from "../lib/api";
 import Sparkline from "../components/Sparkline";
 import type { CompilationRecord, Stats } from "../lib/types";
@@ -19,9 +19,6 @@ export default function HistoryPage() {
       const [h, s] = await Promise.all([fetchHistory(), fetchStats()]);
       setHistory(h);
       setStats(s);
-      // Auto-select the most recent compilation so the detail panel is
-      // never blank on load (Part 8) -- but don't override a selection
-      // the user already made.
       setSelected((prev) => prev ?? h[0] ?? null);
     } catch {
       setLoadError(true);
@@ -35,15 +32,28 @@ export default function HistoryPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-10 text-center text-sm text-slate-500">Loading compilation analytics…</div>;
+    return (
+      <div className="flex h-[calc(100vh-65px)] items-center justify-center bg-[#05070a]">
+        <div className="flex items-center gap-3 text-sm font-mono text-emerald-400">
+          <Activity size={18} className="animate-spin" />
+          <span>Polling SQLite Telemetry Records...</span>
+        </div>
+      </div>
+    );
   }
+
   if (loadError) {
     return (
-      <div className="p-10 text-center text-sm text-rose-400">
-        Unable to load compilation history. Please try again.
-        <div className="mt-3">
-          <button onClick={() => void load()} className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10">
-            Retry
+      <div className="flex h-[calc(100vh-65px)] items-center justify-center bg-[#05070a]">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-8 text-center max-w-md">
+          <XCircle size={28} className="mx-auto text-rose-400 mb-3" />
+          <div className="text-base font-semibold text-rose-200">Unable to load telemetry log</div>
+          <p className="mt-2 text-xs text-rose-300/80">Check that the SheetLang backend API is running on port 3001.</p>
+          <button 
+            onClick={() => void load()} 
+            className="mt-5 rounded-xl border border-white/10 bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700"
+          >
+            Retry Connection
           </button>
         </div>
       </div>
@@ -51,170 +61,210 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-49px)] max-w-[1400px] flex-col gap-5 overflow-y-auto p-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto flex h-[calc(100vh-65px)] max-w-[1450px] flex-col gap-6 overflow-y-auto p-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="text-lg font-semibold text-slate-100">Compilation History</div>
-          <div className="text-[12px] text-slate-500">
-            Persisted in SQLite (<span className="font-mono">backend/data/sheetlang.db</span>) — every row is a real
-            past compile, logged the moment it ran.
+          <div className="flex items-center gap-2">
+            <Activity size={18} className="text-emerald-400" />
+            <h1 className="text-2xl font-bold tracking-tight text-slate-100 font-mono">Compilation Telemetry & Audit</h1>
           </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Persisted in SQLite database (<span className="text-emerald-400 font-mono">backend/data/sheetlang.db</span>) — recording exact sub-millisecond LLVM compiler execution.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => void load()} className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10">
-            Refresh
-          </button>
-          <a href="/api/export/csv" className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10">
-            <Download size={13} /> Export CSV
-          </a>
-        </div>
+
+        <a
+          href="/api/export/csv"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-xs font-semibold text-slate-950 hover:brightness-110 shadow-md shadow-emerald-500/20 transition-all"
+        >
+          <Download size={14} />
+          <span>Export Power BI Dataset (CSV)</span>
+        </a>
       </div>
 
-      {history.length === 0 ? (
-        <div className="rounded-lg border border-[#26313c] bg-[#111820] p-10 text-center text-sm text-slate-500">
-          No compilation history available yet — compile something in the Playground first.
-        </div>
-      ) : (
-        <>
-          {/* KPI hierarchy: Success Rate is dominant, others secondary */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1.4fr_1fr_1fr_1fr]">
-            <div className="rounded-lg border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-transparent p-5">
-              <div className="text-[11px] uppercase tracking-wider text-indigo-300">Success Rate</div>
-              <div className="mt-1 text-4xl font-semibold text-slate-100">{stats?.successRate}%</div>
-              <div className="mt-1 text-[11.5px] text-slate-500">{stats?.successful} of {stats?.total} compilations succeeded</div>
+      {/* KPI Cards Strip */}
+      {stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="glass-panel rounded-2xl p-5 border border-white/10">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Success Rate</span>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-3xl font-extrabold font-mono text-emerald-400">{stats.successRate}%</span>
+              <span className="text-xs text-slate-500 font-mono">({stats.successful} / {stats.total})</span>
             </div>
-            <div className="rounded-lg border border-[#26313c] bg-[#111820] p-5">
-              <div className="text-[11px] uppercase tracking-wider text-slate-500">Total Compilations</div>
-              <div className="mt-1 text-2xl font-semibold text-slate-100">{stats?.total}</div>
-            </div>
-            <div className="rounded-lg border border-[#26313c] bg-[#111820] p-5">
-              <div className="text-[11px] uppercase tracking-wider text-slate-500">Failed</div>
-              <div className="mt-1 text-2xl font-semibold text-slate-100">{stats?.failed}</div>
-            </div>
-            <div className="rounded-lg border border-[#26313c] bg-[#111820] p-5">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] uppercase tracking-wider text-slate-500">Avg Compile Time</div>
-              </div>
-              <div className="mt-1 text-2xl font-semibold text-slate-100">{stats?.averageCompileTimeMs} ms</div>
-              <div className="mt-1">
-                <Sparkline values={(stats?.recentCompileTimes ?? []).map((r) => r.compile_time_ms)} />
-              </div>
+            <div className="mt-3 h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+              <div className="h-full bg-emerald-400" style={{ width: `${stats.successRate}%` }} />
             </div>
           </div>
 
-          {stats && stats.failuresByStage.length > 0 && (
-            <div className="rounded-lg border border-[#26313c] bg-[#111820] p-4">
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Failures by Stage</div>
-              <div className="flex flex-wrap gap-2">
-                {stats.failuresByStage.map((f) => (
-                  <span key={f.stage} className="rounded bg-rose-500/10 px-2.5 py-1 text-[12px] text-rose-300">
-                    {f.stage}: {f.count}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="glass-panel rounded-2xl p-5 border border-white/10">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Total Compilations</span>
+            <div className="mt-2 text-3xl font-extrabold font-mono text-slate-100">{stats.total}</div>
+            <div className="text-xs text-slate-500 mt-2 font-mono">{stats.failed} failed builds logged</div>
+          </div>
 
-          <div className="flex flex-1 gap-4 overflow-hidden">
-            <div className="w-3/5 overflow-auto rounded-lg border border-[#26313c] bg-[#111820]">
-              <table className="w-full text-[12.5px]">
-                <thead className="sticky top-0 bg-[#111820]">
-                  <tr className="border-b border-[#26313c] text-left text-slate-500">
-                    <th className="px-3 py-2">Time</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Compile Time</th>
-                    <th className="px-3 py-2">Result</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((h) => (
+          <div className="glass-panel rounded-2xl p-5 border border-white/10">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Avg Compile Latency</span>
+            <div className="mt-2 text-3xl font-extrabold font-mono text-cyan-400">{stats.averageCompileTimeMs} <span className="text-base text-slate-500 font-normal">ms</span></div>
+            <div className="text-xs text-slate-500 mt-2 font-mono">Sub-millisecond resolution</div>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-5 border border-white/10">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Compile Time Trend</span>
+            <div className="mt-3">
+              <Sparkline values={stats.recentCompileTimes.map((r) => r.compile_time_ms)} />
+            </div>
+            <div className="text-[10px] text-slate-500 mt-2 font-mono">Last {stats.recentCompileTimes.length} runs</div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Split: Audit Table & Compilation Detail */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[450px]">
+        {/* Table Column */}
+        <div className="lg:col-span-7 flex flex-col rounded-2xl border border-white/10 bg-[#080d16] overflow-hidden shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/5 bg-[#0c121e] px-4 py-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">
+              Audit Records ({history.length})
+            </span>
+            <span className="text-[10px] font-mono text-slate-500">Sorted newest first</span>
+          </div>
+
+          <div className="flex-1 overflow-auto">
+            <table className="w-full text-xs text-left border-collapse font-mono">
+              <thead>
+                <tr className="border-b border-white/5 text-[10px] uppercase text-slate-400 bg-slate-900/40">
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Time</th>
+                  <th className="px-4 py-2.5">Latency</th>
+                  <th className="px-4 py-2.5">Stage</th>
+                  <th className="px-4 py-2.5 text-right">Tokens</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {history.map((record) => {
+                  const isSelected = selected?.id === record.id;
+                  const isOk = record.success === 1;
+                  return (
                     <tr
-                      key={h.id}
-                      onClick={() => { setSelected(h); setSourceOpen(false); }}
-                      className={`cursor-pointer border-b border-white/5 hover:bg-white/5 ${selected?.id === h.id ? "bg-indigo-500/10" : ""}`}
+                      key={record.id}
+                      onClick={() => setSelected(record)}
+                      className={`cursor-pointer transition-colors ${
+                        isSelected 
+                          ? "bg-emerald-500/10 border-l-2 border-emerald-400" 
+                          : "hover:bg-white/[0.03]"
+                      }`}
                     >
-                      <td className="px-3 py-1.5 font-mono text-slate-400">{new Date(h.timestamp).toLocaleTimeString()}</td>
-                      <td className="px-3 py-1.5">
-                        {h.success ? (
-                          <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 size={13} /> Success</span>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {isOk ? (
+                            <CheckCircle2 size={14} className="text-emerald-400" />
+                          ) : (
+                            <XCircle size={14} className="text-rose-400" />
+                          )}
+                          <span className={isOk ? "text-emerald-300 font-semibold" : "text-rose-300 font-semibold"}>
+                            {isOk ? "OK" : "FAIL"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400">
+                        {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </td>
+                      <td className="px-4 py-3 text-cyan-300 font-bold">
+                        {record.compile_time_ms.toFixed(1)}ms
+                      </td>
+                      <td className="px-4 py-3 text-slate-300">
+                        {record.failed_stage ? (
+                          <span className="text-rose-400 font-bold">{record.failed_stage}</span>
                         ) : (
-                          <span className="flex items-center gap-1 text-rose-400"><XCircle size={13} /> Failed</span>
+                          <span className="text-slate-500">All 12 stages</span>
                         )}
                       </td>
-                      <td className="px-3 py-1.5 font-mono text-slate-300">{h.compile_time_ms.toFixed(1)} ms</td>
-                      <td className="px-3 py-1.5 text-slate-400">
-                        {h.success
-                          ? `Exit ${h.runtime_exit_code}${h.execution_ms !== null ? ` · ${h.execution_ms.toFixed(1)} ms run` : ""}`
-                          : `Failed at ${h.failed_stage ?? "unknown stage"}`}
+                      <td className="px-4 py-3 text-right text-slate-400">
+                        {record.token_count ?? "-"}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-            <div className="w-2/5 overflow-auto rounded-lg border border-[#26313c] bg-[#111820] p-4">
-              {!selected ? (
-                <div className="text-sm text-slate-500">Select a compilation to view details.</div>
-              ) : (
-                <div className="space-y-4 text-[12.5px]">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Compilation #{selected.id}</div>
-                    <div className="mt-1 text-slate-400">{new Date(selected.timestamp).toLocaleString()}</div>
-                    <div className={`mt-1 font-medium ${selected.success ? "text-emerald-400" : "text-rose-400"}`}>
-                      {selected.success ? "✓ SUCCESS" : "✗ FAILED"}
-                    </div>
-                  </div>
+        {/* Selected Record Detail Column */}
+        <div className="lg:col-span-5 flex flex-col rounded-2xl border border-white/10 bg-[#080d16] overflow-hidden shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/5 bg-[#0c121e] px-4 py-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">
+              Build #{selected?.id ?? "-"} Telemetry Detail
+            </span>
+            {selected && (
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                selected.success ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"
+              }`}>
+                {selected.success ? "SUCCESS" : "FAILED"}
+              </span>
+            )}
+          </div>
 
-                  <div>
-                    <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Performance</div>
-                    <div className="grid grid-cols-2 gap-2 text-slate-300">
-                      <div>Compile Time: <span className="font-mono">{selected.compile_time_ms.toFixed(1)} ms</span></div>
-                      {selected.execution_ms !== null && (
-                        <div>Execution Time: <span className="font-mono">{selected.execution_ms.toFixed(1)} ms</span></div>
-                      )}
-                      {selected.lexer_ms !== null && <div>Lexer: <span className="font-mono">{selected.lexer_ms.toFixed(1)} ms</span></div>}
-                      {selected.parser_ms !== null && <div>Parser: <span className="font-mono">{selected.parser_ms.toFixed(1)} ms</span></div>}
-                      {selected.semantic_ms !== null && <div>Semantic: <span className="font-mono">{selected.semantic_ms.toFixed(1)} ms</span></div>}
-                      {selected.llvm_ms !== null && <div>LLVM IR: <span className="font-mono">{selected.llvm_ms.toFixed(1)} ms</span></div>}
-                    </div>
-                  </div>
+          {selected ? (
+            <div className="flex-1 overflow-auto p-5 space-y-4 font-mono text-xs">
+              <div className="grid grid-cols-2 gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-white/5">
+                <div>
+                  <div className="text-[10px] text-slate-500 uppercase">Timestamp</div>
+                  <div className="text-slate-200 mt-0.5">{selected.timestamp}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-500 uppercase">Total Latency</div>
+                  <div className="text-cyan-400 font-bold mt-0.5">{selected.compile_time_ms} ms</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-500 uppercase">Exit Code</div>
+                  <div className="text-slate-200 mt-0.5">{selected.runtime_exit_code ?? "N/A"}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-500 uppercase">Token Count</div>
+                  <div className="text-slate-200 mt-0.5">{selected.token_count ?? "N/A"}</div>
+                </div>
+              </div>
 
-                  {selected.success ? (
-                    <div>
-                      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Runtime Output</div>
-                      <pre className="max-h-32 overflow-auto rounded bg-black/40 p-2 font-mono text-[11.5px] text-slate-200">
-                        {selected.runtime_output || "(no output)"}
-                      </pre>
-                      <div className="mt-1 text-[11px] text-slate-500">Exit code: {selected.runtime_exit_code}</div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-rose-400">Error</div>
-                      <div className="rounded bg-rose-500/10 p-2 text-rose-300">{selected.error_message}</div>
-                      <div className="mt-1 text-[11px] text-slate-500">Failed stage: {selected.failed_stage}</div>
-                    </div>
-                  )}
-
-                  <div>
-                    <button
-                      onClick={() => setSourceOpen((o) => !o)}
-                      className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200"
-                    >
-                      {sourceOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />} Source Code
-                    </button>
-                    {sourceOpen && (
-                      <pre className="mt-2 max-h-56 overflow-auto rounded bg-black/40 p-2 font-mono text-[11.5px] text-slate-300">
-                        {selected.source_code}
-                      </pre>
-                    )}
-                  </div>
+              {selected.error_message && (
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-rose-300">
+                  <div className="font-bold mb-1 text-[11px] text-rose-200 uppercase">Diagnostic Trace:</div>
+                  <div className="whitespace-pre-wrap">{selected.error_message}</div>
                 </div>
               )}
+
+              {selected.runtime_output && (
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase mb-1.5">Runtime Standard Output:</div>
+                  <pre className="rounded-xl border border-white/5 bg-[#04060a] p-3 text-emerald-400/90 overflow-x-auto whitespace-pre-wrap font-mono">
+                    {selected.runtime_output}
+                  </pre>
+                </div>
+              )}
+
+              <div>
+                <button
+                  onClick={() => setSourceOpen(!sourceOpen)}
+                  className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-colors py-1"
+                >
+                  {sourceOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <span>{sourceOpen ? "Hide Source Payload" : "View Source Payload"}</span>
+                </button>
+                {sourceOpen && (
+                  <pre className="mt-2 rounded-xl border border-white/5 bg-[#04060a] p-3 text-slate-300 overflow-x-auto whitespace-pre-wrap font-mono">
+                    {selected.source_code}
+                  </pre>
+                )}
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          ) : (
+            <div className="flex-1 flex items-center justify-center p-8 text-center text-slate-500 text-xs font-mono">
+              Select an audit record from the table to view execution details.
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
