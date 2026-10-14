@@ -465,15 +465,34 @@ llvm::Value* LLVMCodeGenerator::genExpr(const ASTNode* expr) {
                 if (f->name == "TRIM") return builder_->CreateCall(trimFn_, argVals, "calltmp");
             }
 
-            // Not a user-defined function -- must be one of the fixed
-            // builtins (SUM/AVG/MAX/MIN/ABS), which remain out of scope
-            // for code generation (unchanged since Phase 6/7; semantic
-            // analysis validates their arity/types, but no LLVM codegen
-            // exists for them).
+            if (f->name == "MAX" || f->name == "MIN") {
+                if (f->args.size() != 2) {
+                    reportError(f->name + " expects 2 arguments");
+                    return nullptr;
+                }
+                llvm::Value* a = genExpr(f->args[0]);
+                llvm::Value* b = genExpr(f->args[1]);
+                if (!a || !b) return nullptr;
+                llvm::Value* cmp = (f->name == "MAX") 
+                    ? builder_->CreateFCmpOGT(a, b, "maxtmp")
+                    : builder_->CreateFCmpOLT(a, b, "mintmp");
+                return builder_->CreateSelect(cmp, a, b, "seltmp");
+            }
+
+            if (f->name == "ABS") {
+                if (f->args.size() != 1) {
+                    reportError("ABS expects 1 argument");
+                    return nullptr;
+                }
+                llvm::Value* a = genExpr(f->args[0]);
+                if (!a) return nullptr;
+                llvm::Function* fabsFn = llvm::Intrinsic::getDeclaration(module_, llvm::Intrinsic::fabs, {llvm::Type::getDoubleTy(context_)});
+                return builder_->CreateCall(fabsFn, {a}, "abstmp");
+            }
+
+            // Not a user-defined function or handled builtin
             reportError("function call code generation ('" + f->name +
-                        "') is not implemented for built-in functions "
-                        "(out of scope: SUM/AVG/MAX/MIN/ABS are validated semantically "
-                        "but not code-generated; only user-defined FUNCTION declarations are)");
+                        "') is not implemented for built-in functions");
             return nullptr;
         }
 

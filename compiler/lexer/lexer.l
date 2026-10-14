@@ -73,6 +73,7 @@ IDENT   [A-Za-z_][A-Za-z0-9_]*
 ")"           { return RPAREN; }
 ","           { return COMMA; }
 
+"//".*        { /* single-line comment: column already advanced */ }
 [ \t\r]+      { /* whitespace: column already advanced above */ }
 \n            { g_current_column = 1; }
 
